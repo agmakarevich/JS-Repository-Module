@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Задание 1</title>
+    <script type="text/javascript">
+      class Cookie {
+
+        constructor() {
+          this.cookie = document.cookie.split('; ');
+        }
+
+        getCookie(name) {
+          const curValue = this.cookie.find(el => el.indexOf(`${name}=`) === 0);
+          if (curValue) {
+            return curValue.replace(`${name}=`, '');
+          }
+          return curValue;
+        }
+
+        setCookie(name, value) {
+          const newValue = `${name}=${value}`;
+          const index = this.cookie.findIndex(el => el.indexOf(`${name}=`) === 0);
+          if (index !== -1) {
+            this.cookie[index] = newValue;
+          } else {
+            this.cookie.push(`${name}=${value}`)
+          }
+          document.cookie = newValue;
+        }
+
+        deleteCookie(name) {
+          const index = this.cookie.findIndex(el => el.indexOf(`${name}=`) === 0);
+          if (index !== -1) {
+            this.cookie = this.cookie.splice(index, 1);
+            document.cookie = `${name}=; max-age=0`;
+          }
+        }
+      }
+
+      let cookieClass = new Cookie();
+
+      function colorChange() {
+        const bgColors = ['red', 'green', 'blue', 'gray', 'orange', 'white'];
+        let newColor;
+        const index = bgColors.indexOf(cookieClass.getCookie('bgColor'));
+        if (index === -1 || !bgColors[index + 1]) {
+          newColor = bgColors[0];
+        } else {
+          newColor = bgColors[index + 1];
+        }
+        cookieClass.setCookie('bgColor', newColor);
+        updateColor();
+      }
+
+      function updateColor() {
+        document.body.style.backgroundColor = cookieClass.getCookie('bgColor');
+      }
+
+      function saveForm() {
+        const form = document.getElementById('myForm');
+        if (form) {
+          let data = [];
+          for (let i = 0; i < Array.from(form.elements).length; i++) {
+            data.push(`${form.elements[i].name}=${form.elements[i].value}`);
+          }
+          cookieClass.setCookie('myForm', encodeURIComponent(data.join('&')))
+        }
+      }
+
+      function restoreForm() {
+        const formData = cookieClass.getCookie('myForm');
+        const form = document.getElementById('myForm');
+        if (formData && form) {
+          const data = decodeURIComponent(formData).split('&');
+          for (let i = 0; i < Array.from(form.elements).length; i++) {
+            const elData = data.find(el => el.indexOf(`${form.elements[i].name}=`) !== -1);
+            if (elData) {
+              form.elements[i].value = elData.split('=')[1];
+            }
+          }
+        }
+      }
+
+      function hideText() {
+        const curTime = new Date().getTime();
+        const h = 1000 * 60 * 60;
+        const showDate  = new Date(curTime + h);
+        cookieClass.setCookie('textNode', showDate.getTime());
+      }
+
+      function showText() {
+        const textNode = document.getElementById('textNode');
+        const showTime = cookieClass.getCookie('textNode');
+        if(textNode){
+          const curTime = new Date().getTime();
+          if(!showTime || curTime > Number(showTime)){
+            textNode.style.display = 'block';
+            cookieClass.deleteCookie('textNode');
+          } else {
+            textNode.style.display = 'none';
+          }
+        }
+      }
+    </script>
+
+</head>
+<body>
+<p>
+    <strong>Изменить цвет</strong>
+    <br/>
+    <button onclick="colorChange()">change color</button>
+</p>
+<br/>
+<br/>
+<p>
+    <strong>Form</strong>
+</p>
+<form id="myForm">
+    <p>
+        <label>
+            Name
+            <input type="text" name="name" onkeyup="saveForm()" value="">
+        </label>
+    </p>
+    <p>
+        <label>
+            Text
+            <input type="text" name="text" onkeyup="saveForm()" value="">
+        </label>
+    </p>
+</form>
+
+<p id="textNode">
+    some text!!
+    <button onclick="hideText()">Hide</button>
+</p>
+
+<script>
+  updateColor();
+  restoreForm();
+  showText();
+  setInterval(function () {
+    cookieClass = new Cookie();
+    updateColor();
+    showText();
+  }, 100)
+</script>
+
+</body>
+</html>
